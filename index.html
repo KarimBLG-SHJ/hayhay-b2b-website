@@ -57,6 +57,21 @@
         .logo-icon {
             height: 36px; width: auto; border-radius: 6px;
         }
+        .deco-divider {
+            display: flex; align-items: center; justify-content: center;
+            padding: 40px 48px;
+        }
+        .deco-divider img {
+            height: 100px; width: auto; opacity: 0.2;
+        }
+        .deco-float {
+            position: absolute; opacity: 0.08; pointer-events: none; z-index: 0;
+        }
+        .deco-float.deco-right { right: 48px; }
+        .deco-float.deco-left { left: 48px; }
+        .contact-deco {
+            display: block; margin: 0 auto 24px; height: 60px; width: auto; opacity: 0.5;
+        }
         .nav-pill {
             display: flex; align-items: center;
             background: var(--white); border: 1.5px solid var(--border);
@@ -773,6 +788,11 @@
         </div>
     </section>
 
+    <!-- DECO: ice cream between About and Why -->
+    <div class="deco-divider">
+        <img src="https://www.dropbox.com/scl/fi/0zb9gx0bvoofndnuvfn31/01-2ice-cream-hayhay.jpg?rlkey=ekbgx7218oiewuk06yooigfv5&st=m4qu2bbo&dl=1" alt="">
+    </div>
+
     <!-- WHY -->
     <section class="why" id="why">
         <div class="section-label">Why Partner With Us</div>
@@ -805,6 +825,11 @@
         </div>
     </section>
 
+    <!-- DECO: logo orange between Starter and Ordering -->
+    <div class="deco-divider">
+        <img src="https://www.dropbox.com/scl/fi/fng39wk265e14qu0dkmz3/logo-hayhay-orange.png?rlkey=e76gtknmggoxy02lqbohifj3g&st=x6db2nwr&dl=1" alt="">
+    </div>
+
     <!-- ORDERING -->
     <section class="ordering" id="ordering">
         <div class="ordering-inner">
@@ -820,6 +845,11 @@
             </div>
         </div>
     </section>
+
+    <!-- DECO: ice cream between Ordering and Onboarding -->
+    <div class="deco-divider">
+        <img src="https://www.dropbox.com/scl/fi/0zb9gx0bvoofndnuvfn31/01-2ice-cream-hayhay.jpg?rlkey=ekbgx7218oiewuk06yooigfv5&st=m4qu2bbo&dl=1" alt="" style="transform: scaleX(-1);">
+    </div>
 
     <!-- ONBOARDING -->
     <section class="onboarding" id="onboarding">
@@ -844,6 +874,7 @@
     <!-- CONTACT -->
     <section class="contact" id="contact">
         <div class="contact-card">
+            <img class="contact-deco" src="https://www.dropbox.com/scl/fi/1mminp1xhhpxsngd8lggj/logo-hayhay-orange-contour-blanc.png?rlkey=usaw0v1k66pwj1b3regbl673n&st=3m2yhp3x&dl=1" alt="">
             <h2>Café &amp; Wholesale Partnerships</h2>
             <p>Ready to add handcrafted bakery products to your café? Get in touch to arrange a tasting session and discuss your needs.</p>
             <a href="mailto:partner@hayhaybakery.com" class="btn-white">partner@hayhaybakery.com</a>
