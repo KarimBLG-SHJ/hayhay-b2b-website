@@ -52,6 +52,10 @@
             font-family: 'DM Serif Display', serif;
             font-size: 26px; color: var(--coral);
             letter-spacing: 1px; text-decoration: none; cursor: pointer;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .logo-icon {
+            height: 36px; width: auto; border-radius: 6px;
         }
         .nav-pill {
             display: flex; align-items: center;
@@ -692,7 +696,7 @@
 <!-- NAV -->
 <nav id="navbar">
     <div class="nav-inner">
-        <span class="logo" onclick="showView('home')">HAYHAY</span>
+        <span class="logo" onclick="showView('home')"><img src="https://img.notionusercontent.com/s3/prod-files-secure%2F9d36a02c-a068-47e6-870b-1d8efe71a04f%2Facc1a991-bea0-4c89-995b-9b5199caa1fd%2Fhayhay-noon_logo.jpg/size/w=60?exp=1774893757&sig=SfYLk36d5AERPzV83DvJOPPOpxYmKPjNypBYP86oj3Q&id=30bb5116-2560-80bb-bb06-000bf41a95f1&table=collection&userId=fb48e84e-301e-4b51-b9f7-29f35bb8d3ef" alt="HayHay" class="logo-icon">HAYHAY</span>
         <div class="nav-pill">
             <a href="#" onclick="event.preventDefault(); goTo('about')">About</a>
             <div class="dropdown">
