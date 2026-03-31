@@ -1,12 +1,12 @@
-from flask import Flask, send_from_directory, request, jsonify
-import os, sqlite3, smtplib, json
+from flask import Flask, request, jsonify, send_file, abort
+import os, sqlite3, smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime
 
-app = Flask(__name__, static_folder='.', static_url_path='')
+STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'messages.db')
+DB_PATH = os.path.join(STATIC_DIR, 'messages.db')
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -76,7 +76,6 @@ def contact():
     conn.close()
 
     email_sent = send_email(data)
-
     return jsonify({'ok': True, 'email_sent': email_sent})
 
 @app.route('/messages')
@@ -106,11 +105,14 @@ def messages():
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return send_file(os.path.join(STATIC_DIR, 'index.html'))
 
 @app.route('/<path:path>')
 def static_files(path):
-    return send_from_directory('.', path)
+    fpath = os.path.join(STATIC_DIR, path)
+    if os.path.isfile(fpath):
+        return send_file(fpath)
+    abort(404)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
