@@ -6,19 +6,30 @@ from email.mime.multipart import MIMEMultipart
 STATIC_DIR = os.path.dirname(os.path.abspath(__file__))
 app = Flask(__name__)
 
-DB_PATH = os.path.join(STATIC_DIR, 'messages.db')
+DB_PATH = os.environ.get('DB_PATH', os.path.join('/tmp', 'messages.db'))
+
+_db_initialized = False
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute('''CREATE TABLE IF NOT EXISTS messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT, email TEXT, phone TEXT, business TEXT, message TEXT,
-        created_at TEXT DEFAULT CURRENT_TIMESTAMP
-    )''')
-    conn.commit()
-    conn.close()
+    global _db_initialized
+    if _db_initialized:
+        return
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute('''CREATE TABLE IF NOT EXISTS messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT, email TEXT, phone TEXT, business TEXT, message TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+        conn.commit()
+        conn.close()
+        _db_initialized = True
+    except Exception as e:
+        print(f"DB init error: {e}")
 
-init_db()
+@app.before_request
+def ensure_db():
+    init_db()
 
 def send_email(data):
     smtp_user = os.environ.get('SMTP_USER')
@@ -89,13 +100,13 @@ def messages():
     rows = conn.execute('SELECT * FROM messages ORDER BY created_at DESC').fetchall()
     conn.close()
 
-    html = '''<!DOCTYPE html><html><head><title>hayhay — Messages</title>
+    html = ('''<!DOCTYPE html><html><head><title>hayhay — Messages</title>
     <style>body{font-family:sans-serif;max-width:900px;margin:40px auto;padding:0 20px}
-    table{width:100%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
+    table{width:100%%;border-collapse:collapse}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left}
     th{background:#f5f5f5}h1{color:#E06A55}</style></head><body>
     <h1>hayhay B2B — Enquiries</h1>
     <p>%d message(s)</p>
-    <table><tr><th>#</th><th>Date</th><th>Name</th><th>Email</th><th>Phone</th><th>Business</th><th>Message</th></tr>''' % len(rows)
+    <table><tr><th>#</th><th>Date</th><th>Name</th><th>Email</th><th>Phone</th><th>Business</th><th>Message</th></tr>''') % len(rows)
 
     for r in rows:
         html += f'<tr><td>{r[0]}</td><td>{r[6]}</td><td>{r[1]}</td><td>{r[2]}</td><td>{r[3]}</td><td>{r[4]}</td><td>{r[5]}</td></tr>'
