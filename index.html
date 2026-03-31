@@ -578,6 +578,24 @@
             text-decoration: none; transition: all 0.3s;
         }
         .contact-card a.btn-white:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .contact-form { max-width: 480px; margin: 0 auto; text-align: left; }
+        .contact-form input, .contact-form textarea {
+            width: 100%; padding: 14px 18px; border-radius: 12px; border: none;
+            font-family: 'Roboto Flex', sans-serif; font-size: 14px;
+            margin-bottom: 12px; background: rgba(255,255,255,0.15); color: var(--white);
+        }
+        .contact-form input::placeholder, .contact-form textarea::placeholder { color: rgba(255,255,255,0.6); }
+        .contact-form textarea { min-height: 100px; resize: vertical; }
+        .contact-form button {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--white); color: var(--coral);
+            padding: 16px 36px; border-radius: 100px; border: none; cursor: pointer;
+            font-size: 14px; font-weight: 600; transition: all 0.3s;
+            font-family: 'Roboto Flex', sans-serif;
+        }
+        .contact-form button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+        .contact-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .form-success { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 20px; margin-top: 16px; display: none; }
 
         footer {
             padding: 40px 48px; text-align: center;
@@ -889,7 +907,19 @@
             <img class="contact-deco" src="https://www.dropbox.com/scl/fi/1mminp1xhhpxsngd8lggj/logo-hayhay-orange-contour-blanc.png?rlkey=usaw0v1k66pwj1b3regbl673n&st=3m2yhp3x&dl=1" alt="">
             <h2>Café &amp; Wholesale Partnerships</h2>
             <p>Ready to add handcrafted bakery products to your café? Get in touch to arrange a tasting session and discuss your needs.</p>
-            <a href="mailto:partner@hayhaybakery.com" class="btn-white">partner@hayhaybakery.com</a>
+            <form class="contact-form" id="contactForm" onsubmit="submitContact(event)">
+                <input type="text" name="name" placeholder="Your name" required>
+                <input type="email" name="email" placeholder="Email address" required>
+                <input type="tel" name="phone" placeholder="Phone number">
+                <input type="text" name="business" placeholder="Business / Café name">
+                <textarea name="message" placeholder="Tell us about your needs..."></textarea>
+                <div style="text-align:center;">
+                    <button type="submit" id="contactBtn">Send Enquiry</button>
+                </div>
+            </form>
+            <div class="form-success" id="formSuccess">
+                <strong>Thank you!</strong> We've received your enquiry and will get back to you shortly.
+            </div>
         </div>
     </section>
 </div>
@@ -1088,6 +1118,32 @@ function buildRelatedProducts(product) {
                 <div class="related-card-info"><div class="related-card-name">${r.name}</div></div>
             </div>`).join('')}
         </div>`;
+}
+
+async function submitContact(e) {
+    e.preventDefault();
+    const btn = document.getElementById('contactBtn');
+    const form = document.getElementById('contactForm');
+    btn.disabled = true;
+    btn.textContent = 'Sending...';
+    const data = Object.fromEntries(new FormData(form));
+    try {
+        const res = await fetch('/api/contact', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        if (res.ok) {
+            form.style.display = 'none';
+            document.getElementById('formSuccess').style.display = 'block';
+        } else {
+            btn.textContent = 'Error — try again';
+            btn.disabled = false;
+        }
+    } catch(err) {
+        btn.textContent = 'Error — try again';
+        btn.disabled = false;
+    }
 }
 
 function showProduct(ref) {
