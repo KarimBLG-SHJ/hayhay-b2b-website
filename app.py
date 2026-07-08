@@ -96,7 +96,8 @@ def send_order_email(data):
     smtp_port = int(os.environ.get('SMTP_PORT', 587))
     recipients = os.environ.get('ORDER_EMAILS',
         'operations@atelierblg.com,karim@atelierblg.com,shirazniyas7@gmail.com,'
-        'abderrahim@atelierblg.com,johnraybondoc083095@gmail.com')
+        'abderrahim@atelierblg.com,johnraybondoc083095@gmail.com,'
+        'fouad@atelierblg.com,fouad@hayhaybakery.com')
     to_list = [e.strip() for e in recipients.split(',') if e.strip()]
 
     if not smtp_user or not smtp_pass:
