@@ -89,6 +89,66 @@ def contact():
     email_sent = send_email(data)
     return jsonify({'ok': True, 'email_sent': email_sent})
 
+def send_order_email(data):
+    smtp_user = os.environ.get('SMTP_USER')
+    smtp_pass = os.environ.get('SMTP_PASS')
+    smtp_host = os.environ.get('SMTP_HOST', 'smtp.gmail.com')
+    smtp_port = int(os.environ.get('SMTP_PORT', 587))
+    recipients = os.environ.get('ORDER_EMAILS',
+        'operations@atelierblg.com,karim@atelierblg.com,shirazniyas7@gmail.com,'
+        'abderrahim@atelierblg.com,johnraybondoc083095@gmail.com')
+    to_list = [e.strip() for e in recipients.split(',') if e.strip()]
+
+    if not smtp_user or not smtp_pass:
+        print("SMTP not configured, skipping order email")
+        return False
+
+    client = data.get('client', 'N/A')
+    delivery = data.get('delivery', 'to be confirmed')
+    items = data.get('items', [])
+
+    rows = ''.join(
+        f"<tr><td style='padding:10px 14px;border-bottom:1px solid #eee'>{it.get('name','')}</td>"
+        f"<td style='padding:10px 14px;border-bottom:1px solid #eee;text-align:center;font-weight:700;font-size:16px'>{it.get('qty',0)}</td></tr>"
+        for it in items
+    )
+    html = f"""<div style="font-family:Arial,sans-serif;max-width:560px;color:#3D1E10">
+      <h2 style="color:#E8734A;margin-bottom:4px">🥐 HayHay — New Order</h2>
+      <p style="margin:0 0 2px"><b>Customer:</b> {client}</p>
+      <p style="margin:0 0 16px"><b>Delivery:</b> {delivery}</p>
+      <table style="width:100%;border-collapse:collapse;font-size:15px">
+        <tr style="background:#FBE7DE;text-align:left">
+          <th style="padding:10px 14px">Item</th><th style="padding:10px 14px;text-align:center">Qty</th></tr>
+        {rows}
+      </table>
+      <p style="color:#6B4A38;font-size:12px;margin-top:20px">Sent from the HayHay digital order form.</p>
+    </div>"""
+
+    msg = MIMEMultipart('alternative')
+    msg['From'] = smtp_user
+    msg['To'] = ', '.join(to_list)
+    msg['Subject'] = f"HayHay Order — {client} — delivery {delivery}"
+    msg.attach(MIMEText(data.get('text', ''), 'plain'))
+    msg.attach(MIMEText(html, 'html'))
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, to_list, msg.as_string())
+        return True
+    except Exception as e:
+        print(f"Order email error: {e}")
+        return False
+
+@app.route('/api/order', methods=['POST'])
+def order():
+    data = request.get_json(silent=True)
+    if not data or not data.get('items'):
+        return jsonify({'error': 'No items'}), 400
+    sent = send_order_email(data)
+    return jsonify({'ok': True, 'email_sent': sent})
+
 @app.route('/messages')
 def messages():
     key = request.args.get('key')
