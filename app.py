@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_file, abort
-import os, sqlite3, smtplib, json, urllib.request
+import os, sqlite3, smtplib, json, urllib.request, threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -151,7 +151,7 @@ def post_to_sheet(data):
         body = json.dumps(data).encode('utf-8')
         req = urllib.request.Request(url, data=body,
             headers={'Content-Type': 'application/json'}, method='POST')
-        urllib.request.urlopen(req, timeout=10)
+        urllib.request.urlopen(req, timeout=30)
         return True
     except Exception as e:
         print(f"Sheet webhook error: {e}")
@@ -163,8 +163,9 @@ def order():
     if not data or not data.get('items'):
         return jsonify({'error': 'No items'}), 400
     sent = send_order_email(data)
-    logged = post_to_sheet(data)
-    return jsonify({'ok': True, 'email_sent': sent, 'sheet_logged': logged})
+    # write to the Google Sheet in the background (Apps Script call is slow; don't block the client)
+    threading.Thread(target=post_to_sheet, args=(data,), daemon=True).start()
+    return jsonify({'ok': True, 'email_sent': sent, 'sheet_queued': True})
 
 @app.route('/messages')
 def messages():
