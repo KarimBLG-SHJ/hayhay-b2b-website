@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, send_file, abort
-import os, sqlite3, smtplib
+import os, sqlite3, smtplib, json, urllib.request
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
@@ -142,13 +142,29 @@ def send_order_email(data):
         print(f"Order email error: {e}")
         return False
 
+def post_to_sheet(data):
+    """Push the order to the Google Sheet via an Apps Script webhook (non-fatal)."""
+    url = os.environ.get('SHEET_WEBHOOK_URL')
+    if not url:
+        return False
+    try:
+        body = json.dumps(data).encode('utf-8')
+        req = urllib.request.Request(url, data=body,
+            headers={'Content-Type': 'application/json'}, method='POST')
+        urllib.request.urlopen(req, timeout=10)
+        return True
+    except Exception as e:
+        print(f"Sheet webhook error: {e}")
+        return False
+
 @app.route('/api/order', methods=['POST'])
 def order():
     data = request.get_json(silent=True)
     if not data or not data.get('items'):
         return jsonify({'error': 'No items'}), 400
     sent = send_order_email(data)
-    return jsonify({'ok': True, 'email_sent': sent})
+    logged = post_to_sheet(data)
+    return jsonify({'ok': True, 'email_sent': sent, 'sheet_logged': logged})
 
 @app.route('/messages')
 def messages():
