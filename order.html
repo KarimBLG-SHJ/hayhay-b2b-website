@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HayHay — Order Form</title>
+<style>
+  :root{
+    --cream:#FBF7F0; --card:#FFFFFF; --brown:#3D1E10; --brown-soft:#6B4A38;
+    --coral:#E8734A; --coral-dark:#D45C34; --coral-soft:#FBE7DE; --gold:#C99A3C;
+    --line:rgba(61,30,16,0.10); --green:#2E7D32; --green-soft:#E8F5E9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--cream);color:var(--brown);padding:28px 16px 150px;line-height:1.4}
+  .wrap{max-width:760px;margin:0 auto}
+
+  header{background:var(--brown);color:#fff;border-radius:22px;padding:22px 24px;margin-bottom:22px}
+  .brand{display:flex;justify-content:space-between;align-items:center}
+  .brand .logo{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .brand .tag{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.65)}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+  .field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;
+    color:rgba(255,255,255,.6);margin-bottom:5px}
+  .field input{width:100%;border:none;border-radius:10px;padding:10px 12px;font-size:16px;
+    background:rgba(255,255,255,.12);color:#fff;font-family:inherit}
+  .field input::placeholder{color:rgba(255,255,255,.5)}
+  .field input[type=date]{color-scheme:dark;text-align:left;min-height:44px}
+  .date-wrap{position:relative}
+  .date-wrap .cal{position:absolute;right:14px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:17px}
+  .date-wrap input[type=date]{padding-right:42px}
+  .field input[type=date]::-webkit-calendar-picker-indicator{opacity:0;position:absolute;right:0;top:0;width:100%;height:100%;cursor:pointer}
+
+  .section-title{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+  .section-title h2{font-size:16px;letter-spacing:-.2px}
+  .section-title .bar{flex:1;height:1px;background:var(--line)}
+
+  .list{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .row{display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .row:last-child{border-bottom:none}
+  .row.active{background:var(--coral-soft)}
+  .thumb{width:46px;height:46px;border-radius:12px;background:var(--coral-soft);object-fit:cover;flex-shrink:0}
+  .info{flex:1;min-width:0}
+  .info .n{font-size:15px;font-weight:700}
+  .info .p{font-size:12px;color:var(--brown-soft)}
+  .line-total{font-size:14px;font-weight:800;color:var(--coral);min-width:80px;text-align:right}
+  .line-total.zero{color:var(--line)}
+
+  .stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:100px;overflow:hidden;flex-shrink:0}
+  .stepper button{width:34px;height:34px;border:none;background:var(--cream);color:var(--brown);
+    font-size:18px;font-weight:700;cursor:pointer;line-height:1;transition:background .12s;touch-action:manipulation}
+  .stepper button:hover{background:var(--coral);color:#fff}
+  .stepper input{width:44px;height:34px;border:none;text-align:center;font-size:16px;font-weight:700;
+    color:var(--brown);font-family:inherit;background:#fff;-moz-appearance:textfield}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+
+  .summary{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);
+    box-shadow:0 -6px 24px rgba(61,30,16,.08);padding:14px 16px;z-index:10}
+  .summary .inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .totals{flex:1;min-width:180px}
+  .totals .line{display:flex;justify-content:space-between;font-size:12px;color:var(--brown-soft)}
+  .totals .grand{display:flex;justify-content:space-between;align-items:baseline;margin-top:2px}
+  .totals .grand .lbl{font-size:13px;font-weight:600}
+  .totals .grand .val{font-size:26px;font-weight:800;color:var(--brown);letter-spacing:-1px}
+  .actions{display:flex;gap:10px}
+  .btn{border:none;border-radius:100px;padding:12px 20px;font-size:14px;font-weight:700;cursor:pointer;
+    font-family:inherit;transition:transform .1s,filter .12s}
+  .btn:active{transform:scale(.97)}
+  .btn.wa{background:#25D366;color:#fff}
+  .btn.copy{background:var(--brown);color:#fff}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .cnt{font-size:12px;color:var(--brown-soft);margin-top:2px}
+  .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;
+    padding:10px 20px;border-radius:100px;font-size:13px;font-weight:600;opacity:0;transition:opacity .25s;pointer-events:none;z-index:20;max-width:90%;text-align:center}
+  .toast.show{opacity:1}
+  .toast.err{background:var(--coral-dark)}
+
+  /* validation modal */
+  .overlay{position:fixed;inset:0;background:rgba(61,30,16,.5);backdrop-filter:blur(2px);
+    display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:#fff;border-radius:22px;width:100%;max-width:440px;padding:22px;
+    box-shadow:0 20px 60px rgba(61,30,16,.3);max-height:90vh;overflow:auto;animation:pop .18s ease}
+  @keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+  .mhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+  .mhead h3{font-size:19px}
+  .x{border:none;background:var(--cream);width:32px;height:32px;border-radius:100px;font-size:15px;cursor:pointer;color:var(--brown-soft)}
+  .mmeta{font-size:14px;color:var(--brown-soft);margin-bottom:12px;line-height:1.6}
+  .mmeta b{color:var(--brown)}
+  .mitems{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:14px}
+  .mrow{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);font-size:14px}
+  .mrow:last-child{border-bottom:none}
+  .mrow b{font-size:16px}
+  .mnote{font-size:13px;color:var(--brown-soft);background:var(--coral-soft);border-radius:12px;padding:11px 14px;margin-bottom:16px;line-height:1.5}
+  .mnote b{color:var(--brown)}
+  .mactions{display:flex;gap:10px}
+  .mactions .btn{flex:1;text-align:center}
+  .btn.ghost{background:var(--cream);color:var(--brown)}
+  .btn.go{background:var(--coral);color:#fff}
+  .btn.review{background:var(--coral);color:#fff;width:100%}
+  .done-ico{width:56px;height:56px;border-radius:100px;background:var(--green-soft);color:var(--green);
+    font-size:30px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:6px auto 10px}
+  @media(max-width:600px){
+    body{padding:20px 12px 150px}
+    header{padding:18px 18px}
+    .fields{grid-template-columns:1fr}
+    .row{padding:12px 14px;gap:12px}
+    .thumb{width:44px;height:44px}
+    .info .n{font-size:15px;line-height:1.25}
+    .info .p{font-size:12px}
+    .line-total{display:none}
+    .stepper{flex-shrink:0}
+    .actions{width:100%}
+    .btn{flex:1;padding:14px 10px;font-size:14px}
+    .totals .grand .val{font-size:23px}
+  }
+  @media(max-width:360px){
+    .btn{font-size:13px;padding:13px 8px}
+    .thumb{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">🥐 HayHay</div>
+      <div class="tag">Order Form</div>
+    </div>
+    <div class="fields">
+      <div class="field"><label>Customer</label><input id="client" value="The Coffee Room FZE"></div>
+      <div class="field"><label>Delivery date</label>
+        <div class="date-wrap">
+          <input id="delivery" type="date" onclick="if(this.showPicker)this.showPicker()">
+          <span class="cal">📅</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="section-title"><h2>🥐 Croissants & Pastries</h2><span class="bar"></span></div>
+  <div class="list" id="list-croissants"></div>
+
+  <div class="section-title"><h2>🍪 Cookies</h2><span class="bar"></span></div>
+  <div class="list" id="list-cookies"></div>
+</div>
+
+<div class="summary">
+  <div class="inner">
+    <div class="totals">
+      <div class="line"><span>Subtotal (excl. VAT)</span><span id="ht">0.00 AED</span></div>
+      <div class="line"><span>VAT 5%</span><span id="vat">0.00 AED</span></div>
+      <div class="grand"><span class="lbl">Total (incl. VAT)</span><span class="val" id="ttc">0.00 AED</span></div>
+      <div class="cnt" id="cnt">0 item · 0 unit</div>
+    </div>
+    <div class="actions">
+      <button class="btn review" id="btnReview" disabled onclick="openConfirm()">Review &amp; Confirm →</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeConfirm()">
+  <div class="modal">
+    <div id="step-confirm">
+      <div class="mhead"><h3>Confirm order</h3><button class="x" onclick="closeConfirm()">✕</button></div>
+      <div class="mmeta" id="mmeta"></div>
+      <div class="mitems" id="mitems"></div>
+      <p class="mnote">On confirm, the order is <b>copied</b> (paste it in the WhatsApp group) and an <b>email is sent to the team</b> to confirm production.</p>
+      <div class="mactions">
+        <button class="btn ghost" onclick="closeConfirm()">Cancel</button>
+        <button class="btn go" id="btnGo" onclick="doConfirm()">Confirm &amp; Send</button>
+      </div>
+    </div>
+    <div id="step-done" style="display:none">
+      <div class="done-ico">✓</div>
+      <h3 style="text-align:center;margin-bottom:6px">Order confirmed</h3>
+      <p class="mnote" style="text-align:center" id="doneMsg"></p>
+      <div class="mactions">
+        <button class="btn ghost" onclick="closeConfirm()">Done</button>
+        <button class="btn wa" onclick="openWa()">Open WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const IMG="https://web-production-d97f8.up.railway.app/images/";
+const products=[
+  {g:"croissants", name:"Butter Croissant",         price:8.40,  img:"CROISSANT.jpg"},
+  {g:"croissants", name:"Pain au Chocolat",         price:9.80,  img:"PAIN 4 CHOCOLAT.jpg"},
+  {g:"croissants", name:"Zaatar Cheese Croissant",  price:12.60, img:"CROISSANT.jpg"},
+  {g:"croissants", name:"Almond Croissant",         price:12.60, img:"ALMOND CROISSANT.jpg"},
+  {g:"croissants", name:"Cheddar Cheese Croissant", price:12.60, img:"CROISSANT.jpg"},
+  {g:"croissants", name:"Pecan Croissant",          price:12.60, img:"ALMOND CROISSANT.jpg"},
+  {g:"cookies",    name:"Double Choco Cookie",      price:11.20, img:"Cookie - Daily Rotation.jpg"},
+  {g:"cookies",    name:"Pecan Cookie",             price:11.20, img:"Cookie - Daily Rotation.jpg"},
+  {g:"cookies",    name:"Lemon Cream Cookie",       price:11.20, img:"Cookie - Daily Rotation.jpg"},
+  {g:"cookies",    name:"Peanut Cookie",            price:11.20, img:"Cookie - Daily Rotation.jpg"},
+];
+const qty={};
+const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+" AED";
+
+function build(group,elId){
+  const el=document.getElementById(elId);
+  el.innerHTML=products.map((p,i)=>p.g!==group?"":`
+    <div class="row" id="row-${i}">
+      <img class="thumb" src="${IMG+encodeURIComponent(p.img)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="info"><div class="n">${p.name}</div><div class="p">${p.price.toFixed(2)} AED / unit</div></div>
+      <div class="stepper">
+        <button onclick="bump(${i},-1)">−</button>
+        <input id="q-${i}" type="number" min="0" value="0" onchange="setQ(${i},this.value)">
+        <button onclick="bump(${i},1)">+</button>
+      </div>
+      <div class="line-total zero" id="lt-${i}">—</div>
+    </div>`).join("");
+}
+function bump(i,d){setQ(i,(qty[i]||0)+d);}
+function setQ(i,v){
+  v=Math.max(0,parseInt(v)||0); qty[i]=v;
+  document.getElementById("q-"+i).value=v;
+  const lt=document.getElementById("lt-"+i), row=document.getElementById("row-"+i);
+  if(v>0){lt.textContent=fmt(v*products[i].price);lt.classList.remove("zero");row.classList.add("active");}
+  else{lt.textContent="—";lt.classList.add("zero");row.classList.remove("active");}
+  refresh();
+}
+function refresh(){
+  let ht=0,units=0,lines=0;
+  products.forEach((p,i)=>{const q=qty[i]||0;if(q>0){ht+=q*p.price;units+=q;lines++;}});
+  const vat=ht*0.05, ttc=ht+vat;
+  document.getElementById("ht").textContent=fmt(ht);
+  document.getElementById("vat").textContent=fmt(vat);
+  document.getElementById("ttc").textContent=fmt(ttc);
+  document.getElementById("cnt").textContent=`${lines} item${lines>1?"s":""} · ${units} unit${units>1?"s":""}`;
+  document.getElementById("btnReview").disabled=(lines===0);
+}
+function collect(){
+  const client=document.getElementById("client").value||"—";
+  const dRaw=document.getElementById("delivery").value;
+  const d=dRaw?new Date(dRaw+"T00:00:00").toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'}):"to be confirmed";
+  let ht=0,items=[];
+  products.forEach((p,i)=>{const q=qty[i]||0;if(q>0){ht+=q*p.price;items.push({name:p.name,qty:q,price:p.price,total:+(q*p.price).toFixed(2)});}});
+  const vat=+(ht*0.05).toFixed(2), ttc=+(ht+vat).toFixed(2);
+  ht=+ht.toFixed(2);
+  return {client,delivery:d,items,ht,vat,ttc};
+}
+function orderText(o){
+  const lines=o.items.map(it=>`• ${it.name} — ${it.qty}`);
+  return `🥐 *HayHay — Order*\n`+
+    `Customer: ${o.client}\nDelivery: ${o.delivery}\n\n`+
+    lines.join("\n");
+}
+function emailOrder(o){
+  return fetch("/api/order",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({...o,text:orderText(o)})})
+    .then(r=>r.json()).then(r=>r.email_sent).catch(()=>false);
+}
+
+let lastOrder=null;
+function openConfirm(){
+  const o=collect();
+  if(!o.items.length) return;
+  lastOrder=o;
+  document.getElementById("mmeta").innerHTML=
+    `<div><b>Customer:</b> ${o.client}</div><div><b>Delivery:</b> ${o.delivery}</div>`;
+  document.getElementById("mitems").innerHTML=
+    o.items.map(it=>`<div class="mrow"><span>${it.name}</span><b>${it.qty}</b></div>`).join("");
+  document.getElementById("step-confirm").style.display="";
+  document.getElementById("step-done").style.display="none";
+  document.getElementById("overlay").classList.add("show");
+}
+function closeConfirm(){document.getElementById("overlay").classList.remove("show");}
+function doConfirm(){
+  if(!lastOrder) return;
+  const btn=document.getElementById("btnGo");
+  btn.disabled=true; btn.textContent="Sending…";
+  const txt=orderText(lastOrder);
+  navigator.clipboard.writeText(txt).catch(()=>{});
+  emailOrder(lastOrder).then(sent=>{
+    document.getElementById("doneMsg").innerHTML = sent
+      ? "Copied to clipboard — paste it in the WhatsApp group.<br>Team notified by email ✉️"
+      : "Copied to clipboard — paste it in the WhatsApp group.<br><span style='color:#D45C34'>⚠ Email not sent — check connection</span>";
+    document.getElementById("step-confirm").style.display="none";
+    document.getElementById("step-done").style.display="";
+    btn.disabled=false; btn.textContent="Confirm & Send";
+  });
+}
+function openWa(){
+  if(lastOrder) window.open("https://wa.me/?text="+encodeURIComponent(orderText(lastOrder)),"_blank");
+}
+
+build("croissants","list-croissants");
+build("cookies","list-cookies");
+const _today=new Date();
+const t=new Date();t.setDate(t.getDate()+1);
+const _del=document.getElementById("delivery");
+_del.min=_today.toISOString().slice(0,10);
+_del.value=t.toISOString().slice(0,10);
+refresh();
+</script>
+</body>
+</html>
